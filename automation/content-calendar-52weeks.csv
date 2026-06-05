@@ -1,0 +1,53 @@
+week,country,architect_1,architect_2,architect_3,language,status,notes
+1,Japan,Tadao Ando,Kengo Kuma,Kazuyo Sejima & Ryue Nishizawa (SANAA),Deutsch,pending,Startwoche – bekannteste japanische Architekten
+2,Deutschland,Mies van der Rohe,Frei Otto,Hans Scharoun,Deutsch,pending,Deutsche Klassiker
+3,Brasilien,Oscar Niemeyer,Lina Bo Bardi,Marcio Kogan,Deutsch,pending,
+4,Niederlande,Rem Koolhaas (OMA),MVRDV,Mecanoo,Deutsch,pending,
+5,USA,Frank Lloyd Wright,Louis Kahn,Eero Saarinen,Deutsch,pending,Amerikanische Legenden
+6,Schweiz,Peter Zumthor,Herzog & de Meuron,Mario Botta,Deutsch,pending,Schweizer Meister
+7,Spanien,Santiago Calatrava,Rafael Moneo,Enric Miralles,Deutsch,pending,
+8,Dänemark,Jørn Utzon,BIG – Bjarke Ingels Group,Henning Larsen Architects,Deutsch,pending,
+9,China,Wang Shu,Ma Yansong (MAD),OPEN Architecture,Deutsch,pending,
+10,Portugal,Álvaro Siza Vieira,Eduardo Souto de Moura,Aires Mateus,Deutsch,pending,Zwei Pritzker in einem Land
+11,Indien,Charles Correa,Balkrishna Doshi,Studio Mumbai,Deutsch,pending,Doshi = Pritzker 2018
+12,Norwegen,Snøhetta,Jensen & Skodvin,Reiulf Ramstad Arkitekter,Deutsch,pending,
+13,Australien,Glenn Murcutt,Harry Seidler,Donovan Hill,Deutsch,pending,
+14,Mexiko,Luis Barragán,Agustín Hernández,Teodoro González de León,Deutsch,pending,Barragán = Pritzker 1980
+15,Österreich,Otto Wagner,Hans Hollein,Coop Himmelblau,Deutsch,pending,Wien als Architekturstadt
+16,Schweden,Gunnar Asplund,Ralph Erskine,Wingårdhs,Deutsch,pending,
+17,Finnland,Alvar Aalto,Reima Pietilä,Juhani Pallasmaa,Deutsch,pending,Aalto = Ikone des Nordens
+18,Großbritannien,Norman Foster,Zaha Hadid,Richard Rogers,Deutsch,pending,Drei Pritzker
+19,Frankreich,Jean Nouvel,Christian de Portzamparc,Dominique Perrault,Deutsch,pending,
+20,Italien,Renzo Piano,Carlo Scarpa,Massimiliano Fuksas,Deutsch,pending,
+21,Belgien,Robbrecht en Daem,De Vylder Vinck Taillieu,Stéphane Beel,Deutsch,pending,Unterschätzte Szene
+22,Polen,Daniel Libeskind,KWK Promes,WXCA,Deutsch,pending,Libeskind = Weltarchitekt aus Polen
+23,Chile,Alejandro Aravena,Smiljan Radic,Mathias Klotz,Deutsch,pending,Aravena = Pritzker 2016
+24,Argentinien,César Pelli,Clorindo Testa,Mario Roberto Álvarez,Deutsch,pending,
+25,Israel,Moshe Safdie,Zvi Hecker,Sharon Rotbard,Deutsch,pending,
+26,Südkorea,Minsuk Cho (Mass Studies),Seung H-Sang,Iroje khm Architects,Deutsch,pending,
+27,Singapur,WOHA Architects,Serie Architects,Formwerkz,Deutsch,pending,
+28,Kanada,Arthur Erickson,Moshe Safdie (kanadische Projekte),KPMB Architects,Deutsch,pending,
+29,Japan (II),Toyo Ito,Fumihiko Maki,Arata Isozaki,Deutsch,pending,Zweite Japan-Woche
+30,USA (II),Peter Eisenman,Steven Holl,Michael Graves,Deutsch,pending,New York Fünf
+31,Deutschland (II),Gerhard Wittfeld (kadawittfeldarchitektur),Léon Wohlhage Wernik,Sauerbruch Hutton,Deutsch,pending,
+32,Niederlande (II),Aldo van Eyck,Herman Hertzberger,UNStudio (Ben van Berkel),Deutsch,pending,
+33,Großbritannien (II),David Chipperfield,Peter Salter,Alison & Peter Smithson,Deutsch,pending,
+34,Schweiz (II),Valerio Olgiati,Peter Märkli,Miller & Maranta,Deutsch,pending,
+35,Ghana & Afrika,Francis Kéré,David Adjaye,Diébédo Francis Kéré,Deutsch,pending,Kéré = Pritzker 2022
+36,Türkei,Sedad Hakkı Eldem,Han Tümertekin,Emre Arolat,Deutsch,pending,
+37,Griechenland,Aris Konstantinidis,Takis Zenetos,Alexandros Tombazis,Deutsch,pending,
+38,Brasilien (II),Paulo Mendes da Rocha,João Vilanova Artigas,Affonso Eduardo Reidy,Deutsch,pending,
+39,USA (III),Philip Johnson,I.M. Pei,Kevin Roche,Deutsch,pending,
+40,Frankreich (II),Le Corbusier,Auguste Perret,Jean Prouvé,Deutsch,pending,Historische Avantgarde
+41,Japan (III),Sou Fujimoto,Junya Ishigami,Hitoshi Abe,Deutsch,pending,Neue Generation Japan
+42,Mexiko (II),Ricardo Legorreta,Enrique Norten,Alberto Kalach,Deutsch,pending,
+43,China (II),Zhang Lei,Yung Ho Chang,Wang Weijen,Deutsch,pending,
+44,Österreich (II),Adolf Loos,Josef Frank,Margarete Schütte-Lihotzky,Deutsch,pending,Frühe Moderne Wien
+45,Russland,Konstantin Melnikov,Ivan Leonidov,Aleksej Shchusev,Deutsch,pending,Russischer Konstruktivismus
+46,Kolumbien & Lateinamerika,Giancarlo Mazzanti,Felipe Mesa,Rogelio Salmona,Deutsch,pending,
+47,Iran,Nader Khalili,Kamran Diba,Hadi Mirmiran,Deutsch,pending,
+48,Niederlande (III),Neutelings Riedijk,Claus en Kaan,Jo Coenen,Deutsch,pending,
+49,USA (IV),Thom Mayne (Morphosis),Tod Williams & Billie Tsien,Antoine Predock,Deutsch,pending,
+50,Japan (IV),Riken Yamamoto,Hiroshi Hara,Kazuhiro Ishii,Deutsch,pending,
+51,Frauen in der Architektur,Kazuyo Sejima,Lina Bo Bardi,Denise Scott Brown,Deutsch,pending,Special Week
+52,Pritzker Champions,Glenn Murcutt,Wang Shu,Christian de Portzamparc,Deutsch,pending,Jahresrückblick

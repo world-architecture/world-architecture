@@ -1,0 +1,194 @@
+{
+  "name": "World Architecture – Daily Video Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 6 * * *" }] }
+      },
+      "id": "node-001",
+      "name": "Täglich 06:00 Uhr",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [180, 300]
+    },
+    {
+      "parameters": {
+        "operation": "readOrSearch",
+        "documentId": { "__rl": true, "value": "={{$env.GOOGLE_SHEET_ID}}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Sheet1", "mode": "name" },
+        "filtersUI": {
+          "values": [{ "lookupColumn": "status", "lookupValue": "pending" }]
+        },
+        "options": { "returnFirstMatch": false }
+      },
+      "id": "node-002",
+      "name": "Nächste Woche laden",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [420, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "1", "name": "Google Sheets" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [$input.first()];"
+      },
+      "id": "node-003",
+      "name": "Erste ausstehende Woche",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/pipeline",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "architect": "={{$json.architect_1}}",
+          "country": "={{$json.country}}",
+          "language": "={{$json.language}}",
+          "autoUpload": false
+        },
+        "options": { "timeout": 300000 }
+      },
+      "id": "node-004",
+      "name": "Video 1 generieren",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/pipeline",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "architect": "={{$json.architect_2}}",
+          "country": "={{$json.country}}",
+          "language": "={{$json.language}}",
+          "autoUpload": false
+        },
+        "options": { "timeout": 300000 }
+      },
+      "id": "node-005",
+      "name": "Video 2 generieren",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/pipeline",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "architect": "={{$json.architect_3}}",
+          "country": "={{$json.country}}",
+          "language": "={{$json.language}}",
+          "autoUpload": false
+        },
+        "options": { "timeout": 300000 }
+      },
+      "id": "node-006",
+      "name": "Video 3 generieren",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 420]
+    },
+    {
+      "parameters": { "amount": 180, "unit": "seconds" },
+      "id": "node-007",
+      "name": "3 Min warten (Render läuft)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1140, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/upload-youtube",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "videoUrl": "={{$node['Video 1 generieren'].json.renderJobs[0].url}}",
+          "title": "={{$node['Video 1 generieren'].json.script.architect}} – Top Architekturprojekte | World Architecture",
+          "description": "={{$node['Video 1 generieren'].json.script.intro.text}}\n\n#Architecture #Design #WorldArchitecture #{{$node['Video 1 generieren'].json.script.country}}",
+          "tags": ["Architecture","Design","WorldArchitecture","Buildings","Architektur"]
+        }
+      },
+      "id": "node-008",
+      "name": "YouTube Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1380, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "={{$env.GOOGLE_SHEET_ID}}", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Sheet1", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "done",
+            "youtube_url": "={{$node['YouTube Upload'].json.youtubeUrl}}",
+            "completed_at": "={{$now.toISO()}}"
+          }
+        },
+        "where": {
+          "values": [{ "column": "week", "value": "={{$node['Erste ausstehende Woche'].json.week}}" }]
+        }
+      },
+      "id": "node-009",
+      "name": "Sheet: Status → done",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1620, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "1", "name": "Google Sheets" } }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "=✅ *3 neue Videos produziert!*\n\n🏛 {{$node['Video 1 generieren'].json.script.architect}}\n🏛 {{$node['Video 2 generieren'].json.script.architect}}\n🏛 {{$node['Video 3 generieren'].json.script.architect}}\n\n🌍 {{$node['Erste ausstehende Woche'].json.country}}\n▶️ {{$node['YouTube Upload'].json.youtubeUrl}}",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "node-010",
+      "name": "Telegram: Fertig-Meldung",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1860, 300],
+      "credentials": { "telegramApi": { "id": "2", "name": "Telegram Bot" } }
+    }
+  ],
+  "connections": {
+    "Täglich 06:00 Uhr": { "main": [[{ "node": "Nächste Woche laden", "type": "main", "index": 0 }]] },
+    "Nächste Woche laden": { "main": [[{ "node": "Erste ausstehende Woche", "type": "main", "index": 0 }]] },
+    "Erste ausstehende Woche": {
+      "main": [
+        [{ "node": "Video 1 generieren", "type": "main", "index": 0 }],
+        [{ "node": "Video 2 generieren", "type": "main", "index": 0 }],
+        [{ "node": "Video 3 generieren", "type": "main", "index": 0 }]
+      ]
+    },
+    "Video 1 generieren": { "main": [[{ "node": "3 Min warten (Render läuft)", "type": "main", "index": 0 }]] },
+    "Video 2 generieren": { "main": [[{ "node": "3 Min warten (Render läuft)", "type": "main", "index": 0 }]] },
+    "Video 3 generieren": { "main": [[{ "node": "3 Min warten (Render läuft)", "type": "main", "index": 0 }]] },
+    "3 Min warten (Render läuft)": { "main": [[{ "node": "YouTube Upload", "type": "main", "index": 0 }]] },
+    "YouTube Upload": { "main": [[{ "node": "Sheet: Status → done", "type": "main", "index": 0 }]] },
+    "Sheet: Status → done": { "main": [[{ "node": "Telegram: Fertig-Meldung", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true },
+  "meta": { "templateId": "world-architecture-pipeline" },
+  "tags": [{ "name": "architecture" }, { "name": "automation" }]
+}

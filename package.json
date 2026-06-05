@@ -1,0 +1,280 @@
+// pages/index.js – World Architecture Video Pipeline
+// Mobile-first UI, works on phone + desktop
+
+import { useState } from "react";
+import Head from "next/head";
+
+const COUNTRIES = [
+  "Deutschland","Japan","USA","Brasilien","Niederlande","Schweiz",
+  "Spanien","Frankreich","China","Dänemark","Norwegen","Österreich",
+  "Australien","Mexiko","Portugal","Indien","Singapur","Chile",
+  "Schweden","Finnland","Großbritannien","Italien","Belgien","Polen"
+];
+
+export default function Home() {
+  const [form, setForm] = useState({ architect: "", country: "Deutschland", language: "Deutsch", autoUpload: false });
+  const [phase, setPhase] = useState("input"); // input | loading | result | error
+  const [result, setResult] = useState(null);
+  const [log, setLog] = useState([]);
+  const [activeProj, setActiveProj] = useState(0);
+  const [error, setError] = useState(null);
+
+  const run = async () => {
+    if (!form.architect.trim()) return;
+    setPhase("loading"); setLog([]); setResult(null); setError(null);
+
+    try {
+      const res = await fetch("/api/pipeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      setLog(data.log || []);
+      if (data.error) { setError(data.error); setPhase("error"); return; }
+      setResult(data);
+      setPhase("result");
+      setActiveProj(0);
+    } catch (e) {
+      setError(e.message);
+      setPhase("error");
+    }
+  };
+
+  const copyScript = () => {
+    if (!result?.script) return;
+    const s = result.script;
+    const txt = `${s.architect} | ${s.country}\n\nINTRO\n${s.intro.text}\n\n` +
+      s.projects.map((p, i) => `PROJEKT ${i+1}: ${p.name} (${p.year})\n${p.text}`).join("\n\n");
+    navigator.clipboard.writeText(txt);
+  };
+
+  const c = {
+    bg: "#080808", surface: "#0f0f0f", border: "#1e1e1e",
+    gold: "#b8935a", text: "#ede8e0", muted: "#555", subtle: "#333"
+  };
+
+  const input = (extra = {}) => ({
+    padding: "13px 16px", background: c.surface, border: `1px solid ${c.border}`,
+    color: c.text, fontSize: 15, outline: "none", fontFamily: "Georgia, serif",
+    width: "100%", boxSizing: "border-box", ...extra
+  });
+
+  return (
+    <>
+      <Head>
+        <title>World Architecture – Video Pipeline</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+
+      <div style={{ minHeight: "100vh", background: c.bg, color: c.text, fontFamily: "Georgia, serif" }}>
+
+        {/* Header */}
+        <header style={{ padding: "0 20px", height: 50, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${c.border}`, background: "#090909", position: "sticky", top: 0, zIndex: 100 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ color: c.gold, fontSize: 18 }}>◈</span>
+            <span style={{ fontSize: 11, letterSpacing: "3px", textTransform: "uppercase", color: "#777" }}>World Architecture</span>
+          </div>
+          {phase === "result" && (
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={copyScript} style={{ padding: "6px 14px", background: c.surface, border: `1px solid ${c.border}`, color: "#888", cursor: "pointer", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", fontFamily: "Georgia, serif" }}>
+                ⎘ Skript
+              </button>
+              <button onClick={() => { setPhase("input"); setForm(f => ({ ...f, architect: "" })); }} style={{ padding: "6px 14px", background: c.surface, border: `1px solid ${c.border}`, color: c.gold, cursor: "pointer", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", fontFamily: "Georgia, serif" }}>
+                + Neu
+              </button>
+            </div>
+          )}
+        </header>
+
+        {/* INPUT */}
+        {(phase === "input" || phase === "error") && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 50px)", padding: 20 }}>
+            <div style={{ width: "100%", maxWidth: 480 }}>
+              <div style={{ textAlign: "center", marginBottom: 40 }}>
+                <div style={{ fontSize: 48, color: c.gold, marginBottom: 14 }}>◈</div>
+                <h1 style={{ fontSize: 24, fontWeight: "normal", letterSpacing: 2, margin: "0 0 6px" }}>Video Pipeline</h1>
+                <p style={{ fontSize: 11, letterSpacing: "3px", color: c.muted, textTransform: "uppercase", margin: 0 }}>
+                  Skript · Bilder · Voiceover · Video · Upload
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <input value={form.architect}
+                  onChange={e => setForm(f => ({ ...f, architect: e.target.value }))}
+                  onKeyDown={e => e.key === "Enter" && run()}
+                  placeholder="Architekt eingeben…"
+                  style={input({ fontSize: 18 })} />
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <select value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} style={input()}>
+                    {COUNTRIES.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                  <select value={form.language} onChange={e => setForm(f => ({ ...f, language: e.target.value }))} style={input()}>
+                    <option>Deutsch</option>
+                    <option>Englisch</option>
+                  </select>
+                </div>
+
+                <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: c.surface, border: `1px solid ${c.border}`, cursor: "pointer" }}>
+                  <input type="checkbox" checked={form.autoUpload} onChange={e => setForm(f => ({ ...f, autoUpload: e.target.checked }))} style={{ accentColor: c.gold, width: 16, height: 16 }} />
+                  <span style={{ fontSize: 13, color: c.muted }}>Automatisch auf YouTube hochladen</span>
+                </label>
+
+                <button onClick={run} disabled={!form.architect.trim()}
+                  style={{ padding: 15, background: form.architect.trim() ? c.gold : c.surface, color: form.architect.trim() ? "#080808" : c.muted, border: "none", cursor: form.architect.trim() ? "pointer" : "default", fontSize: 11, letterSpacing: "3px", textTransform: "uppercase", fontWeight: "bold", fontFamily: "Georgia, serif" }}>
+                  ▶ Pipeline starten
+                </button>
+
+                {error && (
+                  <div style={{ padding: "12px 16px", background: "#1a0808", border: `1px solid #3a1515`, color: "#e06060", fontSize: 12 }}>
+                    {error}
+                  </div>
+                )}
+              </div>
+
+              {/* Pipeline Steps */}
+              <div style={{ marginTop: 36, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
+                {["Skript","Bilder","Voice","Video","Upload"].map((s, i) => (
+                  <div key={i} style={{ padding: "10px 4px", background: c.surface, border: `1px solid ${c.border}`, textAlign: "center" }}>
+                    <div style={{ fontSize: 9, color: c.gold, marginBottom: 3 }}>0{i+1}</div>
+                    <div style={{ fontSize: 10, color: c.muted, letterSpacing: "1px" }}>{s}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LOADING */}
+        {phase === "loading" && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 50px)", gap: 24, padding: 20 }}>
+            <div style={{ fontSize: 42, color: c.gold }}>◈</div>
+            <div style={{ fontSize: 14, letterSpacing: "2px", textTransform: "uppercase", color: c.muted }}>Pipeline läuft…</div>
+            <div style={{ width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 8 }}>
+              {log.map((l, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", background: c.surface, border: `1px solid ${l.status === "done" ? c.gold : l.status === "failed" ? "#3a1515" : c.border}` }}>
+                  <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1px", color: c.muted }}>{l.step}</span>
+                  <span style={{ fontSize: 12, color: l.status === "done" ? c.gold : l.status === "failed" ? "#e06060" : c.muted }}>
+                    {l.status === "done" ? "✓" : l.status === "failed" ? "✗" : "⏳"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* RESULT */}
+        {phase === "result" && result?.script && (() => {
+          const s = result.script;
+          const p = s.projects?.[activeProj] || {};
+          const imgs = result.images?.[activeProj] || [];
+          const jobs = result.renderJobs || [];
+
+          return (
+            <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+
+              {/* Architect */}
+              <div style={{ borderBottom: `1px solid ${c.border}`, paddingBottom: 20, marginBottom: 24 }}>
+                <div style={{ fontSize: 10, letterSpacing: "4px", color: c.gold, textTransform: "uppercase", marginBottom: 6 }}>
+                  {s.country}{s.born ? ` · *${s.born}` : ""}
+                </div>
+                <h2 style={{ fontSize: 30, fontWeight: "normal", fontStyle: "italic", margin: "0 0 12px" }}>{s.architect}</h2>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {s.officialWebsite && <a href={`https://${s.officialWebsite}`} target="_blank" rel="noopener" style={{ padding: "5px 10px", border: `1px solid ${c.gold}`, color: c.gold, textDecoration: "none", fontSize: 10, letterSpacing: "1px" }}>🌐 Website</a>}
+                  {[["ArchDaily", `https://www.archdaily.com/search/all?q=${encodeURIComponent(s.architect)}`],
+                    ["Dezeen", `https://www.dezeen.com/search/?q=${encodeURIComponent(s.architect)}`],
+                    ["Wikimedia", `https://commons.wikimedia.org/w/index.php?search=${encodeURIComponent(s.architect)}&title=Special:MediaSearch&type=image`]
+                  ].map(([label, url]) => (
+                    <a key={label} href={url} target="_blank" rel="noopener" style={{ padding: "5px 10px", border: `1px solid ${c.border}`, color: c.muted, textDecoration: "none", fontSize: 10, letterSpacing: "1px" }}>{label}</a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Intro */}
+              <div style={{ background: c.surface, border: `1px solid ${c.border}`, padding: "18px 20px", marginBottom: 20 }}>
+                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                  <span style={{ background: c.gold, color: "#080808", padding: "2px 9px", fontSize: 9, letterSpacing: "2px", fontWeight: "bold", textTransform: "uppercase" }}>INTRO</span>
+                  <span style={{ fontSize: 11, color: c.muted }}>{s.intro.duration}</span>
+                </div>
+                <p style={{ lineHeight: 1.9, fontSize: 14, color: "#ccc", margin: 0 }}>{s.intro.text}</p>
+              </div>
+
+              {/* Project Tabs */}
+              <div style={{ display: "flex", gap: 2, marginBottom: 0 }}>
+                {s.projects.map((pr, i) => (
+                  <button key={i} onClick={() => setActiveProj(i)} style={{
+                    flex: 1, padding: "10px 4px", cursor: "pointer",
+                    background: activeProj === i ? "#131313" : c.surface,
+                    border: `1px solid ${activeProj === i ? c.gold : c.border}`,
+                    borderBottom: activeProj === i ? "1px solid #131313" : `1px solid ${c.border}`,
+                    color: activeProj === i ? c.gold : c.muted,
+                    fontSize: 10, letterSpacing: "1px", textTransform: "uppercase", fontFamily: "Georgia, serif"
+                  }}>P{i+1}</button>
+                ))}
+              </div>
+
+              {/* Project Content */}
+              <div style={{ background: "#131313", border: `1px solid ${c.gold}`, borderTop: "none", marginBottom: 20 }}>
+                <div style={{ padding: "16px 20px", borderBottom: `1px solid ${c.border}` }}>
+                  <h3 style={{ fontSize: 18, fontStyle: "italic", fontWeight: "normal", margin: "0 0 4px" }}>{p.name}</h3>
+                  <div style={{ fontSize: 11, color: c.muted }}>{p.year} · {p.location} · {p.duration}</div>
+                </div>
+
+                <div style={{ padding: "18px 20px" }}>
+                  <p style={{ lineHeight: 1.9, fontSize: 14, color: "#ccc", margin: "0 0 20px" }}>{p.text}</p>
+
+                  {/* Images */}
+                  {imgs.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: "3px", color: c.muted, textTransform: "uppercase", marginBottom: 10 }}>Wikimedia Bilder</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+                        {imgs.map((img, ii) => (
+                          <div key={ii}>
+                            <img src={img.thumb} alt={img.title} style={{ width: "100%", height: 80, objectFit: "cover", display: "block" }} />
+                            <div style={{ background: "#080808", padding: "3px 5px", fontSize: 8, color: c.subtle }}>{img.license}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bildquellen */}
+                  <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {[
+                      ["Wikimedia", `https://commons.wikimedia.org/w/index.php?search=${encodeURIComponent((p.wikiSearch||[])[0]||p.name)}&title=Special:MediaSearch&type=image`],
+                      s.officialWebsite && ["Architekt-Website", `https://${s.officialWebsite}`],
+                      ["ArchDaily", `https://www.archdaily.com/search/all?q=${encodeURIComponent(p.name)}`],
+                      ["Google Bilder", `https://www.google.com/search?q=${encodeURIComponent(p.googleImages || p.name)}&tbm=isch`],
+                    ].filter(Boolean).map(([label, url]) => (
+                      <a key={label} href={url} target="_blank" rel="noopener" style={{ padding: "5px 9px", border: `1px solid ${c.border}`, color: c.muted, textDecoration: "none", fontSize: 9, letterSpacing: "1px" }}>{label} →</a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Render Jobs */}
+              {jobs.length > 0 && (
+                <div style={{ background: c.surface, border: `1px solid ${c.border}`, padding: "16px 20px" }}>
+                  <div style={{ fontSize: 9, letterSpacing: "3px", color: c.muted, textTransform: "uppercase", marginBottom: 12 }}>Video Render Jobs</div>
+                  {jobs.map((job, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderTop: i > 0 ? `1px solid ${c.border}` : "none" }}>
+                      <span style={{ fontSize: 12, textTransform: "uppercase", color: c.muted }}>{job.format}</span>
+                      {job.error ? (
+                        <span style={{ fontSize: 11, color: "#e06060" }}>Fehler – API Key fehlt</span>
+                      ) : job.url ? (
+                        <a href={job.url} target="_blank" rel="noopener" style={{ fontSize: 11, color: c.gold }}>↓ Download</a>
+                      ) : (
+                        <span style={{ fontSize: 11, color: c.muted }}>⏳ {job.status || "rendering"}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+    </>
+  );
+}
