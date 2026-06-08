@@ -1,59 +1,63 @@
-// pages/api/generate-voiceover.js
-// POST { text, voiceId?, stability?, style? }
-// Returns audio buffer as base64 (mp3)
+// pages/api/get-firms.js
+// GET ?country=Deutschland
+// Returns top architecture firms for a country (size-appropriate list)
+
+const COUNTRY_SIZES = {
+  small: ["Liechtenstein","Luxemburg","Zypern","Malta","Estland","Lettland","Litauen","Slowenien","Kroatien","Albanien","Kosovo","Montenegro","Nordmazedonien","Bosnien","Moldau","Island","Bahrain","Katar","Kuwait","Brunei","Singapur","Israel","Libanon","Jordanien","Uruguay","Paraguay","Costa Rica","Panama","El Salvador","Honduras","Guatemala","Nicaragua","Bolivien","Ecuador","Ghana","Senegal","Tansania","Kenia","Äthiopien","Ruanda","Namibia","Botswana","Zimbabwe"],
+  medium: ["Österreich","Schweiz","Belgien","Niederlande","Portugal","Dänemark","Schweden","Finnland","Norwegen","Tschechien","Ungarn","Polen","Rumänien","Bulgarien","Griechenland","Türkei","Mexiko","Argentinien","Chile","Kolumbien","Peru","Venezuela","Malaysia","Thailand","Vietnam","Indonesien","Philippinen","Pakistan","Bangladesh","Ägypten","Marokko","Algerien","Tunesien","Südafrika","Nigeria","Kenia"],
+};
+
+function getListSize(country) {
+  if (COUNTRY_SIZES.small.includes(country)) return 5;
+  if (COUNTRY_SIZES.medium.includes(country)) return 20;
+  return 50; // large countries: Deutschland, USA, China, Japan, UK, Frankreich, Italien, Spanien, etc.
+}
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  const { country } = req.query;
+  if (!country) return res.status(400).json({ error: "country required" });
 
-  const {
-    text,
-    voiceId = process.env.ELEVENLABS_VOICE_ID || "pNInz6obpgDQGcFmaJgB", // Adam (English)
-    stability = 0.40,        // 35-45% = most human
-    similarityBoost = 0.75,
-    style = 0.15,            // low = more natural
-    modelId = "eleven_multilingual_v2"
-  } = req.body;
+  const listSize = getListSize(country);
 
-  if (!text) return res.status(400).json({ error: "text required" });
-  if (!process.env.ELEVENLABS_API_KEY) return res.status(500).json({ error: "ELEVENLABS_API_KEY not set" });
+  const prompt = `List the top ${listSize} most important and internationally recognized architecture firms/offices from ${country}. Include both historic masters and contemporary firms. Mix individual architects and larger offices.
+
+Return ONLY a JSON array, no markdown, no explanation:
+[
+  {"name": "Firm Name", "type": "office|individual", "known_for": "one short phrase"},
+  ...
+]
+
+Order by international recognition and importance. Include both classical masters (if relevant) and contemporary offices.`;
 
   try {
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      {
-        method: "POST",
-        headers: {
-          "Accept": "audio/mpeg",
-          "Content-Type": "application/json",
-          "xi-api-key": process.env.ELEVENLABS_API_KEY
-        },
-        body: JSON.stringify({
-          text,
-          model_id: modelId,
-          voice_settings: {
-            stability,
-            similarity_boost: similarityBoost,
-            style,
-            use_speaker_boost: true
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const err = await response.text();
-      return res.status(500).json({ error: `ElevenLabs error: ${err}` });
-    }
-
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-
-    res.setHeader("Content-Type", "application/json");
-    return res.status(200).json({
-      audio: base64,
-      mimeType: "audio/mpeg",
-      size: buffer.byteLength
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }]
+      })
     });
+
+    const data = await response.json();
+    if (data.error) return res.status(500).json({ error: data.error.message });
+
+    const raw = data.content?.map(c => c.text || "").join("") || "";
+    let parsed = null;
+    const clean = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    const start = clean.indexOf("[");
+    const end = clean.lastIndexOf("]");
+    if (start !== -1 && end !== -1) {
+      try { parsed = JSON.parse(clean.substring(start, end + 1)); } catch (_) {}
+    }
+    if (!parsed) return res.status(500).json({ error: "Parse failed", raw: raw.substring(0, 200) });
+
+    return res.status(200).json({ country, firms: parsed, total: parsed.length });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
