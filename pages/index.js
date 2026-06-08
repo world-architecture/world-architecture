@@ -62,3 +62,6 @@ Order by international recognition and importance. Include both classical master
     return res.status(500).json({ error: err.message });
   }
 }
+export async function getServerSideProps() {
+  return { props: {} };
+}
